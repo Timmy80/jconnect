@@ -54,24 +54,17 @@
 
 	<build>
 		<plugins>
+			<!-- This profile creates a package of configuration, jars and scripts ready to be installed -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.1.1</version>
 				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>timmy.toolbox.cmdline.JConnect</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
+					<descriptors>
+						<descriptor>build-archive.xml</descriptor>
+					</descriptors>
 				</configuration>
 				<executions>
 					<execution>
-						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
-							<finalName>${project.artifactId}-${project.version}-aio</finalName>
-						</configuration>
 						<id>make-assembly</id> <!-- this is used for inheritance merges -->
 						<phase>package</phase> <!-- bind to the packaging phase -->
 						<goals>

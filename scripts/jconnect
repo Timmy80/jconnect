@@ -1,0 +1,19 @@
+#!/bin/bash
+
+export MAINCLASS="timmy.toolbox.cmdline.JConnect"
+CLASSPATH="";
+
+scriptdir=$( dirname $0 ) 
+rootdir=$scriptdir/..
+
+cd $rootdir
+
+# LOAD JAVA CLASSPATH
+for jar in .//lib/*.jar ; do
+    CLASSPATH="${CLASSPATH}${jar}:"
+done
+CLASSPATH="${CLASSPATH}:conf"
+export CLASSPATH
+
+java $MAINCLASS $@
+
