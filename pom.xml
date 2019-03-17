@@ -8,18 +8,28 @@
 
 	<name>JConnect</name>
 	<description>A very simple Command Line JMX Client</description>
-	<url>https://github.com/Timmy80</url>
+	<url>https://github.com/Timmy80/jconnect</url>
 
 	<licenses>
 		<license>
-			<name>MIT</name>
-			<url>https://choosealicense.com/licenses/mit/</url>
-			<distribution>repo</distribution>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
 		</license>
 	</licenses>
 
+	<developers>
+		<developer>
+			<name>Anthony THOMAS</name>
+			<email>anthony.800@live.fr</email>
+			<organization>overware-fr</organization>
+			<organizationUrl>https://github.com/overware-fr</organizationUrl>
+		</developer>
+	</developers>
+
 	<scm>
-		<url>https://github.com/Timmy80/jconnect</url>
+		<connection>scm:git:git://github.com:Timmy80/jconnect.git</connection>
+		<developerConnection>scm:git:ssh://github.com:Timmy80/jconnect.git</developerConnection>
+		<url>https://github.com/Timmy80/jconnect/tree/master</url>
 	</scm>
 
 	<properties>
@@ -54,7 +64,32 @@
 
 	<build>
 		<plugins>
-			<!-- This profile creates a package of configuration, jars and scripts ready to be installed -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- This creates a package of configuration, jars and scripts ready to 
+				be installed -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.1</version>
