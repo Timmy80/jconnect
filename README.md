@@ -4,21 +4,35 @@ JConnect is a simple and lightweight command line JMX client written in java usi
 
 ## How to use?
 
-JConnect uses a properties file that must contain at least the property **jmxport**.  
-The default name is jconnect.properties but you can give the name you want to this file.
+The easiest way to use jconnect is to download the tar.gz packaged version from the [maven central repository](https://mvnrepository.com/artifact/com.github.timmy80/jconnect) or build it yourself.
 
-Example: jconnect.properties
+Untar the archive and get into it:
+```
+tar -zxvf jconnect-1.0.0-bin.tar.gz
+cd jconnect-1.0.0/
+```
+
+JConnect uses a properties file that must contain at least the property **jmxport**.  
+The default name is jconnect.properties but this name can be changed using an environment variable.
+
+Example: conf/jconnect.properties
 ```
 jmxport=10000
 ```
 
-Set the classpath with the properties file into it and start:
+Start Jconnect
 ```
-export CLASSPATH=./:jconnect-1.0.0-aio.jar
-java timmy.toolbox.cmdline.JConnect 
+./bin/jconnect
 ```
 
-Remark: the above classpath assumes that your properties files is located in `./`. For example if you choose to put it in a "conf" directory, then change `./` by `./conf/`.
+## How to build?
+
+JConnect is a maven project, you can build it simply by running the following command:
+```
+mvn clean package
+```
+
+The results will be available in the target directory.
 
 ## Inline usage
 
