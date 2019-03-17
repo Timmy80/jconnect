@@ -45,13 +45,12 @@ Then I can write the following script:
 displayStatsAndReset.sh
 ```
 #!/bin/bash
-export CLASSPATH=./:jconnect-0.0.1-SNAPSHOT-aio.jar
 
 if [ -z "$1" ]; then
   arg='*'
 fi
-java timmy.toolbox.cmdline.JConnect STATISTICS displayStats $arg
-java timmy.toolbox.cmdline.JConnect STATISTICS resetStats
+./bin/jconnect STATISTICS displayStats $arg || exit $?
+./bin/jconnect STATISTICS resetStats
 ```
 
 ## All the properties
