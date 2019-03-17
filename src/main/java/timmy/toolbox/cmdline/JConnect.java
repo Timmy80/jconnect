@@ -253,11 +253,11 @@ public class JConnect implements NotificationListener {
 				System.exit(0);
 
 			if("help".equals(cmd[0])) {
-				System.out.println("type '?' to get the list of the tasks");
+				System.out.println("type '?' to get the list of the beans");
 				System.out.println("Use tab to autocomplete your commands");
-				System.out.println("Set an attribute: <Task Id> set <attribute> <value>");
-				System.out.println("Get an attribute: <Task Id> get <attribute>");
-				System.out.println("Call a method:    <Task Id> <method> [arguments...]");
+				System.out.println("Set an attribute: <Bean Id> set <attribute> <value>");
+				System.out.println("Get an attribute: <Bean Id> get <attribute>");
+				System.out.println("Call a method:    <Bean Id> <method> [arguments...]");
 				return;
 			}
 
