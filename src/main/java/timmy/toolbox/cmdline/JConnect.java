@@ -59,6 +59,12 @@ import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.TerminalBuilder;
 
+/**
+ * JConnect: A very simple Command Line JMX Client using jline3 for the command line autocompletion. * 
+ * @author Anthony THOMAS
+ * 
+ *
+ */
 public class JConnect implements NotificationListener {
 
 	private static final String COMMAND_PROMPT = "$> ";
@@ -79,6 +85,11 @@ public class JConnect implements NotificationListener {
 	/** status code of the program */
 	int exitCode = 0;
 
+	/**
+	 * The jline3 Completer implementation for JConnect.<br>
+	 * This does the completion of the commands when users press tab.
+	 * 
+	 */
 	public static class ConsoleCompletor implements Completer {
 
 		final JConnect jconnect;
@@ -150,6 +161,10 @@ public class JConnect implements NotificationListener {
 
 	}
 	
+	/**
+	 * JConnect's constructor load the properties file.<br>
+	 * This may exit the program if the configuration cannot be loaded.
+	 */
 	public JConnect() {
 		try
 		{
@@ -184,6 +199,12 @@ public class JConnect implements NotificationListener {
 		stop(1);
 	}
 	
+	/**
+	 * Get all the available beans.
+	 * @return a Map(Name, ObjectName) of the all the available beans. Never null but may be empty.
+	 * @throws MalformedObjectNameException in case of a JMX issue
+	 * @throws IOException in case of a JMX issue
+	 */
 	public Map<String, ObjectName> getBeans() throws MalformedObjectNameException, IOException{
 		HashMap<String, ObjectName> beans = new HashMap<>();
 		
@@ -200,6 +221,16 @@ public class JConnect implements NotificationListener {
 		return beans;
 	}
 	
+	/**
+	 * Get MBeanInfo of a bean.
+	 * @param name the name of the been we are looking for
+	 * @return null if the bean is not found.
+	 * @throws InstanceNotFoundException in case of a JMX issue
+	 * @throws IntrospectionException in case of a JMX issue
+	 * @throws ReflectionException in case of a JMX issue
+	 * @throws IOException in case of a JMX issue
+	 * @throws MalformedObjectNameException in case of a JMX issue
+	 */
 	public MBeanInfo getBean(String name) throws InstanceNotFoundException, IntrospectionException, ReflectionException, IOException, MalformedObjectNameException {
 		ObjectName objName = getBeans().get(name);
 		if(objName == null)
@@ -208,6 +239,11 @@ public class JConnect implements NotificationListener {
 			return mbsc.getMBeanInfo(objName);
 	}
 	
+	/**
+	 * Get the signature of a JMX exposed method to display it into console.
+	 * @param operation the method to display
+	 * @return the string representation of the method
+	 */
 	public String displaySignature(MBeanOperationInfo operation) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(StringUtils.removeStart(operation.getReturnType(), "java.lang.")).append(" ");
@@ -221,11 +257,17 @@ public class JConnect implements NotificationListener {
 		return builder.toString();
 	}
 
-	
+	/**
+	 * stop JConnect with the status code 0
+	 */
 	public void stop() {
 		stop(0);
 	}
 	
+	/**
+	 * stop JConnect with the specified exit code
+	 * @param code the exit code
+	 */
 	public void stop(int code) {
 		try {
 			timer.cancel();
@@ -427,7 +469,13 @@ public class JConnect implements NotificationListener {
 		}
 	}
 
-	int execute(String[] args)  {
+	/**
+	 * The entry point of JConnect.<br>
+	 * It opens the JMX connection and then execute the command given by args or start the interactive command line interface.
+	 * @param args the arguments of an inline command to be executed. may be empty.
+	 * @return the exit code of JConnect if not stopped by the method stop(int code)
+	 */
+	public int execute(String[] args)  {
 		try
 		{
 			JMXServiceURL url = new JMXServiceURL(JMX_URL);
