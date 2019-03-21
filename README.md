@@ -4,7 +4,7 @@ JConnect is a simple and lightweight command line JMX client written in java usi
 
 ## How to use?
 
-The easiest way to use jconnect is to download the tar.gz packaged version from the [maven central repository](https://mvnrepository.com/artifact/com.github.timmy80/jconnect) or build it yourself.
+The easiest way to use jconnect is to download the tar.gz packaged version from the [maven central repository](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=comgithubtimmy80-1001&g=com.github.timmy80&a=jconnect&v=LATEST&e=tar.gz&c=bin) or build it yourself.
 
 Untar the archive and get into it:
 ```
