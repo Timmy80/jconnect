@@ -256,6 +256,58 @@ public class JConnect implements NotificationListener {
 		builder.append(")");
 		return builder.toString();
 	}
+	
+	public Object convert(String value, String type) {
+		Object wResult=null;
+		switch (type) {
+			case "int":
+			case "java.lang.Integer":
+				wResult = Integer.parseInt(value);
+				break;
+			case "double":
+			case "java.lang.Double":
+				wResult = Double.parseDouble(value);
+				break;
+	
+			case "float":
+			case "java.lang.Float":
+				wResult = Float.parseFloat(value);
+				break;
+	
+			case "boolean":
+			case "java.lang.Boolean":
+				wResult = Boolean.parseBoolean(value);
+				break;
+	
+			case "java.lang.String":
+				wResult = value;
+				break;
+	
+			case "long":
+			case "java.lang.Long":
+				wResult = Long.parseLong(value);
+				break;
+	
+			case "byte":
+			case "java.lang.Byte":
+				wResult = Byte.parseByte(value);
+				break;
+	
+			case "short":
+			case "java.lang.Short":
+				wResult = Short.parseShort(value);
+				break;
+	
+			case "char":
+			case "java.lang.Character":
+				wResult = new Character(value.charAt(0));
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid non primitive data type "+type);
+		}
+		
+		return wResult;
+	}
 
 	/**
 	 * stop JConnect with the status code 0
@@ -291,7 +343,7 @@ public class JConnect implements NotificationListener {
 				return;
 			}
 
-			if("exit".equals(cmd[0]))
+			if("exit".equals(cmd[0]) || "quit".equals(cmd[0]))
 				System.exit(0);
 
 			if("help".equals(cmd[0])) {
@@ -320,9 +372,12 @@ public class JConnect implements NotificationListener {
 					return;
 				}
 
-				Attribute attr = new Attribute(cmd[2], cmd[3]);
-				try
-				{
+				try {
+					// find the attribute
+					Object wActualValue = mbsc.getAttribute(name, cmd[2]);
+					
+					// prepare the new value of the attribute + convert the value of the command line to the type of the actual value
+					Attribute attr = new Attribute(cmd[2], convert(cmd[3], wActualValue.getClass().getName()));
 					mbsc.setAttribute(name, attr);
 					System.out.println(cmd[2]+" has been set to "+cmd[3]);
 					logger.info("Successfull call to {}", Arrays.toString(cmd));
@@ -333,6 +388,11 @@ public class JConnect implements NotificationListener {
 				} catch (AttributeNotFoundException e) {
 					logger.warn("Invalid attribute "+cmd[2]+" for "+cmd[0]+". ", e);
 					System.err.println(System.lineSeparator()+"Invalid attribute "+cmd[2]+" for "+cmd[0]+". "+e.getMessage());
+				}
+				catch (IllegalArgumentException e) {
+					logger.warn("Cannot set attribute "+cmd[2]+": "+e.getMessage()+". {}", Arrays.toString(cmd));
+					System.err.println("Cannot set attribute "+cmd[2]+": "+e.getMessage());
+					exitCode=4;
 				}
 			}
 			else if("get".equals(cmd[1])) {
@@ -396,55 +456,15 @@ public class JConnect implements NotificationListener {
 					boolean isValid = true;
 					i = 0;
 					for(MBeanParameterInfo param : op.getSignature()) {
-						switch (param.getType()) {
-						case "int":
-						case "java.lang.Integer":
-							params[i] = Integer.parseInt(cmd[i+2]);
-							break;
-						case "double":
-						case "java.lang.Double":
-							params[i] = Double.parseDouble(cmd[i+2]);
-							break;
-	
-						case "float":
-						case "java.lang.Float":
-							params[i] = Float.parseFloat(cmd[i+2]);
-							break;
-	
-						case "boolean":
-						case "java.lang.Boolean":
-							params[i] = Boolean.parseBoolean(cmd[i+2]);
-							break;
-	
-						case "java.lang.String":
-							params[i] = cmd[i+2];
-							break;
-	
-						case "long":
-						case "java.lang.Long":
-							params[i] = Long.parseLong(cmd[i+2]);
-							break;
-	
-						case "byte":
-						case "java.lang.Byte":
-							params[i] = Byte.parseByte(cmd[i+2]);
-							break;
-	
-						case "short":
-						case "java.lang.Short":
-							params[i] = Short.parseShort(cmd[i+2]);
-							break;
-	
-						case "char":
-						case "java.lang.Character":
-							params[i] = new Character(cmd[i+2].charAt(0));
-							break;
-						default:
+						
+						try {
+							params[i] = convert(cmd[i+2], param.getType());
+						}
+						catch(IllegalArgumentException e) {
 							logger.warn("Cannot call a method using the non primitive data type "+param.getType()+". {}", Arrays.toString(cmd));
 							System.err.println("Cannot call a method using the non primitive data type "+param.getType());
 							exitCode=4;
 							isValid = false;
-							break;
 						}
 	
 						signature[i] = param.getType();
