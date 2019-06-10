@@ -141,6 +141,8 @@ public class JConnect implements NotificationListener {
 
 					candidates.add(new Candidate("set"));
 					candidates.add(new Candidate("get"));
+					candidates.add(new Candidate("operations"));
+					candidates.add(new Candidate("attributes"));
 				}
 
 			} catch (MalformedObjectNameException | InstanceNotFoundException | IntrospectionException | ReflectionException e) {
@@ -365,6 +367,11 @@ public class JConnect implements NotificationListener {
 			}
 
 			ObjectName name = getBeans().get(cmd[0]);
+			if(name == null) {
+				System.err.println("Invalid Bean "+cmd[0]+"!");
+				logger.warn("Invalid Bean {}!", cmd[0]);
+				return;
+			}
 
 			if("set".equals(cmd[1])) {
 				if(cmd.length < 4) {
@@ -413,13 +420,29 @@ public class JConnect implements NotificationListener {
 					System.err.println(System.lineSeparator()+"Invalid attribute "+cmd[2]+" for "+cmd[0]+". "+e.getMessage());
 				}		
 			}
-			else if("?".equals(cmd[1])) {
+			else if("?".equals(cmd[1]) || "operations".equals(cmd[1])) {
 				// display methods signatures
 				
 				MBeanInfo infos = mbsc.getMBeanInfo(name);
 				MBeanOperationInfo[] ops = infos.getOperations();
 				for(MBeanOperationInfo operation : ops) {
 					System.out.println(displaySignature(operation));
+				}
+			}
+			else if("attributes".equals(cmd[1])) {
+				MBeanInfo infos = mbsc.getMBeanInfo(name);
+				MBeanAttributeInfo[] attrs = infos.getAttributes();
+
+				try {
+					if(attrs != null) {
+						for(MBeanAttributeInfo attrInfo : attrs) {
+							System.out.println(attrInfo.getName()+"=M"+mbsc.getAttribute(name, attrInfo.getName()));
+						}
+					}
+					logger.info("Successfull call to {}", Arrays.toString(cmd));
+				} catch (AttributeNotFoundException e) {
+					logger.warn("Exception on getAttribute.", e);
+					System.err.println(System.lineSeparator()+"Exception on getAttribute. "+e.getMessage());
 				}
 			}
 			else {
