@@ -124,6 +124,8 @@ public class JConnect implements NotificationListener {
 		private void completeOperationsForBean(ParsedLine line, List<Candidate> candidates) throws IOException {
 			try {
 				MBeanInfo infos = jconnect.getBean(line.words().get(0));
+				if(infos == null)
+					return;
 
 				if(line.words().size() == 3 && (line.words().get(1).equals("set") || line.words().get(1).equals("get"))) {
 					for(MBeanAttributeInfo attr : infos.getAttributes()) {
