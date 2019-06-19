@@ -370,6 +370,7 @@ public class JConnect implements NotificationListener {
 			if(name == null) {
 				System.err.println("Invalid Bean "+cmd[0]+"!");
 				logger.warn("Invalid Bean {}!", cmd[0]);
+				exitCode=4;
 				return;
 			}
 
@@ -394,9 +395,11 @@ public class JConnect implements NotificationListener {
 				catch (InvalidAttributeValueException e) {
 					logger.warn("Invalid value for "+cmd[2]+". ", e);
 					System.err.println(System.lineSeparator()+"Invalid value for "+cmd[2]+". "+e.getMessage());
+					exitCode=4;
 				} catch (AttributeNotFoundException e) {
 					logger.warn("Invalid attribute "+cmd[2]+" for "+cmd[0]+". ", e);
 					System.err.println(System.lineSeparator()+"Invalid attribute "+cmd[2]+" for "+cmd[0]+". "+e.getMessage());
+					exitCode=4;
 				}
 				catch (IllegalArgumentException e) {
 					logger.warn("Cannot set attribute "+cmd[2]+": "+e.getMessage()+". {}", Arrays.toString(cmd));
@@ -418,6 +421,7 @@ public class JConnect implements NotificationListener {
 				} catch (AttributeNotFoundException e) {
 					logger.warn("Invalid attribute "+cmd[2]+" for "+cmd[0]+". ", e);
 					System.err.println(System.lineSeparator()+"Invalid attribute "+cmd[2]+" for "+cmd[0]+". "+e.getMessage());
+					exitCode=4;
 				}		
 			}
 			else if("?".equals(cmd[1]) || "operations".equals(cmd[1])) {
@@ -443,6 +447,7 @@ public class JConnect implements NotificationListener {
 				} catch (AttributeNotFoundException e) {
 					logger.warn("Exception on getAttribute.", e);
 					System.err.println(System.lineSeparator()+"Exception on getAttribute. "+e.getMessage());
+					exitCode=4;
 				}
 			}
 			else {
@@ -511,6 +516,7 @@ public class JConnect implements NotificationListener {
 			logger.error("Unexpected exception.",e);
 			System.err.println(System.lineSeparator()+"Unexpected exception:");
 			e.printStackTrace();
+			exitCode=5;
 		}
 	}
 
