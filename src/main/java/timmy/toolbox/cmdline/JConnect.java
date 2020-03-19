@@ -569,7 +569,7 @@ public class JConnect implements NotificationListener {
 				String line;
 				while ((line = consoleReader.readLine(COMMAND_PROMPT)) != null) {
 					
-					String[] cmd = line.split(" ");
+					String[] cmd = line.split("\\s+");
 					executeCommand(cmd);
 	
 				}
