@@ -16,11 +16,13 @@ JConnect uses a properties file that must contain at least the property **jmxpor
 The default name is jconnect.properties but this name can be changed using an environment variable.
 
 Example: conf/jconnect.properties
+
 ```
 jmxport=10000
 ```
 
 Start Jconnect
+
 ```
 ./bin/jconnect
 ```
@@ -43,7 +45,8 @@ Let's take an example:
 I've a bean STATISTICS that exposes two method `void resetStats()` and `String displayStats(String filter)`.  
 Then I can write the following script:
 displayStatsAndReset.sh
-```
+
+```bash
 #!/bin/bash
 
 if [ -z "$1" ]; then
@@ -53,6 +56,24 @@ fi
 ./bin/jconnect STATISTICS resetStats
 ```
 
+## Command line options (since 1.3.0)
+
+If you don't want to configure jconnect using a properties file, you can simply give it the options in the command line arguments:
+
+```bash
+# Example of command line with options
+./bin/jconnect -h myserverip -p 9090 -- STATISTICS displayStats
+```
+
+```bash
+# Command line options
+usage: jconnect
+ -d,--domain <arg>   JMX domain. * by default.
+ -h,--host <arg>     hostname or ip of the JMX server
+ -help,--help        print this message
+ -p,--port <arg>     port of the JMX server
+ ```
+
 ## All the properties
 
 ```
@@ -61,9 +82,24 @@ jmxhost=myserver // hostname of the jvm (default is localhost)
 jmxdomain=timmy.app // jmx domain filter (default is *). You can use this to limit the list of beans.
 ```
 
-## Change the name of the propertie file
+## Environment config
 
-If your properties file is not names jconnect.properties then you'll have to set the name is the JCONNECTPROPERTIES environment variable:
+Jconnect can also be configured using some environment variables.
+
+```bash
+# value=default 
+JCONNECTPROPERTIES=jconnect.properties # Properties files that describes host, port, domain... to use
+JCONNECTHISTORY=.jconnect.history # path to the history file used to store jconnect command line history
+JMXHOST=localhost # hostname or ip of the JMX server
+JMXPORT=null      # port of the JMX server
+JMXDOMAIN=*       # JMX domain. * by default.
+
 ```
+
+## Change the name of the properties file
+
+If your properties file is not named jconnect.properties then you'll have to set the name is the JCONNECTPROPERTIES environment variable:
+
+```bash
 export JCONNECTPROPERTIES=foo.properties
 ```

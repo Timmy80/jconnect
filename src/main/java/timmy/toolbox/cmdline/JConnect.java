@@ -13,9 +13,9 @@
  */
 package timmy.toolbox.cmdline;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +46,14 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jline.reader.Candidate;
@@ -57,6 +64,7 @@ import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.ParsedLine;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.LineReaderImpl;
+import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.TerminalBuilder;
 
 /**
@@ -78,9 +86,10 @@ public class JConnect implements NotificationListener {
 	// properties
 	Properties props = new Properties();
 	String propertiesFile = "jconnect.properties";
-	String jmxhost = null;
+	String historyFile = null;
+	String jmxhost = "localhost";
 	String jmxport = null;
-	String jmxDomain = null;
+	String jmxDomain = "*";
 	
 	/** status code of the program */
 	int exitCode = 0;
@@ -168,26 +177,68 @@ public class JConnect implements NotificationListener {
 	/**
 	 * JConnect's constructor load the properties file.<br>
 	 * This may exit the program if the configuration cannot be loaded.
+	 * @param args the options passed in the command line arguments
 	 */
-	public JConnect() {
+	public JConnect(String[] args) {
 		try
 		{
-			String wPropertiesFile = System.getenv("JCONNECTPROPERTIES");
-			if(wPropertiesFile != null)
-				propertiesFile = wPropertiesFile;
+			// load from environment variables
+			jmxhost   = getEnv("JMXHOST",   jmxhost);
+			jmxport   = getEnv("JMXPORT",   jmxport);
+			jmxDomain = getEnv("JMXDOMAIN", jmxDomain);
 			
+			historyFile = getEnv("JCONNECTHISTORY", historyFile);
+			
+			// load from properties file (if available)
+			propertiesFile = getEnv("JCONNECTPROPERTIES", propertiesFile);
 			InputStream input = JConnect.class.getClassLoader().getResourceAsStream(propertiesFile);
-			if(input==null){
-		        throw new FileNotFoundException("Unable to find " + propertiesFile+" from classpath.");
+			if(input!=null){
+				props.load(input);
+				jmxhost   = props.getProperty("jmxhost",   jmxhost);
+				jmxport   = props.getProperty("jmxport",   jmxport);
+				jmxDomain = props.getProperty("jmxdomain", jmxDomain);
+				historyFile = props.getProperty("jconnect.history", historyFile);
 			}
-			props.load(input);
-			jmxhost=props.getProperty("jmxhost","localhost");
-			jmxport=props.getProperty("jmxport");
+			
+			// load from command line arguments
+			Options options = new Options();
+			options.addOption("help", "help",   false, "print this message");
+			options.addOption("h",    "host",   true,  "hostname or ip of the JMX server");
+			options.addOption("p",    "port",   true,  "port of the JMX server");
+			options.addOption("d",    "domain", true,  "JMX domain. * by default.");
+			
+			CommandLineParser parser = new DefaultParser();
+			CommandLine cmd = parser.parse( options, args);
+			
+			if (cmd.hasOption("help")) {
+				// automatically generate the help statement
+				HelpFormatter formatter = new HelpFormatter();
+				formatter.printHelp( "jconnect", options, true );
+				System.exit(0);
+			}
+			
+			if (cmd.hasOption('h')) {
+				jmxhost = cmd.getOptionValue('h');
+			}
+			
+			if (cmd.hasOption('p')) {
+				jmxport = cmd.getOptionValue('p');
+			}
+			
+			if (cmd.hasOption('d')) {
+				jmxDomain = cmd.getOptionValue('d');
+			}
+			
+			// check
 			if(jmxport == null)
 				throw new IOException("property jmxport not found!");
-			jmxDomain=props.getProperty("jmxdomain","*");
 			
+			// build JMX URL
 			JMX_URL = String.format("service:jmx:rmi:///jndi/rmi://%s:%s/jmxrmi", jmxhost, jmxport);
+		}
+		catch(org.apache.commons.cli.ParseException e){
+			System.err.println(e.getMessage());
+			System.exit(2);
 		}
 		catch(IOException e) {
 			logger.fatal("IOException on properties loading.", e);
@@ -552,6 +603,7 @@ public class JConnect implements NotificationListener {
 			System.exit(1);
 		}
 
+		DefaultHistory whistory = null;
 		try
 		{
 			if(args.length > 0) {
@@ -560,9 +612,14 @@ public class JConnect implements NotificationListener {
 				
 			}
 			else {
-			
 				LineReaderImpl consoleReader = (LineReaderImpl) LineReaderBuilder.builder().terminal(TerminalBuilder.terminal()).build();
 				consoleReader.setCompleter(new ConsoleCompletor(this));
+				if(historyFile != null) {
+					whistory = new DefaultHistory();
+					consoleReader.setVariable(LineReader.HISTORY_FILE, historyFile);
+					consoleReader.setHistory(whistory);
+				}
+
 	
 				System.out.println("Welcome to JConnect console. Type help to get started.");
 				
@@ -588,11 +645,61 @@ public class JConnect implements NotificationListener {
 			stop();
 			return 0;
 		}
+		finally {
+			try {
+				if(whistory != null)
+					whistory.save();
+			}
+			catch (IOException e) {
+				logger.error("faile to save history.", e);
+			}
+		}
 
+	}
+	
+
+	public static String getEnv(String name, String def) {
+		String value = System.getenv(name);
+		if(value == null)
+			value = def;
+		
+		return value;
+	}
+	
+	public static String getEnv(String name) {
+		return getEnv(name, null);
+	}
+	
+	public static Pair<String[], String[]> splitOptionsAndCommand(String[] args){
+		String[] opts = new String[0];
+		String[] cmds = new String[0];
+		ArrayList<String> options = new ArrayList<String>();
+		ArrayList<String> command = new ArrayList<String>();
+		
+		if(args != null && args.length > 0 && args[0].startsWith("-")) { // first arg is an option
+			// separate the args by "--"
+			boolean match = false;
+			for(String opt : args) {
+				if("--".equals(opt))
+					match = true;
+				else if(!match)
+					options.add(opt);
+				else
+					command.add(opt);
+			}
+			opts = options.toArray(opts);
+			cmds = command.toArray(cmds);
+		}
+		else { // there is no options in the args
+			cmds = args;
+		}
+			
+		return new ImmutablePair<String[], String[]>(opts, cmds);
 	}
 
 	public static void main(String[] args) {
-		System.exit(new JConnect().execute(args));		
+		Pair<String[], String[]> optAndCmd = splitOptionsAndCommand(args);
+		System.exit(new JConnect(optAndCmd.getLeft()).execute(optAndCmd.getRight()));
 	}
 
 }
